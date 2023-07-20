@@ -9,6 +9,12 @@ import { UUIDType } from '../types/uuid.js';
 import { MemberType } from './memberType.js';
 import { PrismaClient } from '@prisma/client';
 
+export const ProfileFields = {
+  id: { type: new GraphQLNonNull(UUIDType) },
+  isMale: { type: new GraphQLNonNull(GraphQLBoolean) },
+  yearOfBirth: { type: new GraphQLNonNull(GraphQLInt) },
+};
+
 export const ProfileId = new GraphQLNonNull(UUIDType);
 export const Profile = new GraphQLObjectType<
   { id: string; memberTypeId: string },
@@ -16,9 +22,9 @@ export const Profile = new GraphQLObjectType<
 >({
   name: 'Profile',
   fields: () => ({
-    id: { type: ProfileId },
-    isMale: { type: new GraphQLNonNull(GraphQLBoolean) },
-    yearOfBirth: { type: new GraphQLNonNull(GraphQLInt) },
+    id: ProfileFields.id,
+    isMale: ProfileFields.isMale,
+    yearOfBirth: ProfileFields.yearOfBirth,
     memberType: {
       type: MemberType,
       resolve: (source, _, { prisma }) =>

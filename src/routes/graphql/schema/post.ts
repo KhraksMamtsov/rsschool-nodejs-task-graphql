@@ -1,13 +1,18 @@
 import { GraphQLObjectType, GraphQLNonNull, GraphQLString, GraphQLList } from 'graphql';
 import { UUIDType } from '../types/uuid.js';
 
-export const PostId = new GraphQLNonNull(UUIDType);
+export const PostFields = {
+  id: { type: new GraphQLNonNull(UUIDType) },
+  title: { type: new GraphQLNonNull(GraphQLString) },
+  content: { type: new GraphQLNonNull(GraphQLString) },
+};
+
 export const Post = new GraphQLObjectType({
   name: 'Post',
   fields: () => ({
-    id: { type: PostId },
-    title: { type: GraphQLString },
-    content: { type: GraphQLString },
+    id: PostFields.id,
+    title: PostFields.title,
+    content: PostFields.content,
   }),
 });
 
