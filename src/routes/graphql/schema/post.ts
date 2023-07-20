@@ -1,12 +1,26 @@
 import { GraphQLObjectType, GraphQLNonNull, GraphQLString, GraphQLList } from 'graphql';
 import { UUIDType } from '../types/uuid.js';
 import { ObjMap } from 'graphql/jsutils/ObjMap.js';
-import { GraphQLFieldConfig } from 'graphql/type/definition.js';
+import {
+  GraphQLFieldConfig,
+  GraphQLNullableType,
+  GraphQLOutputType,
+} from 'graphql/type/definition.js';
 import { PrismaClient } from '@prisma/client';
 import { GraphQLBoolean, GraphQLInputObjectType } from 'graphql/index.js';
-import { UserFields } from './user.js';
+import { ChangeUserInput, User, UserFields } from './user.js';
 import { MemberTypeFields } from './memberType.js';
-import { Profile, ProfileFields } from './profile.js';
+import { ProfileFields } from './profile.js';
+
+export const nullable = <
+  T extends { type: GraphQLNonNull<X> },
+  X extends GraphQLNullableType,
+>(
+  x: T,
+): T & { type: X } => ({
+  ...x,
+  type: x.type.ofType,
+});
 
 export const PostFields = {
   id: { type: new GraphQLNonNull(UUIDType) },
@@ -59,6 +73,20 @@ export interface CreatePostInput {
   readonly title: string;
 }
 
+export const ChangePostInput = new GraphQLInputObjectType({
+  name: 'ChangePostInput',
+  fields: () => ({
+    authorId: nullable(UserFields.id),
+    content: nullable(PostFields.content),
+    title: nullable(PostFields.title),
+  }),
+});
+export interface ChangePostInput {
+  readonly authorId?: string;
+  readonly content?: string;
+  readonly title?: string;
+}
+
 export const mutations: () => ObjMap<
   GraphQLFieldConfig<void, { prisma: PrismaClient }>
 > = () => ({
@@ -70,16 +98,30 @@ export const mutations: () => ObjMap<
         data: args.dto,
       }),
   },
-  deletePost: {
-    type: GraphQLBoolean,
-    args: { id: PostFields.id },
-    resolve: async (_source, args: { id: string }, { prisma }) => {
-      await prisma.post.delete({
+  changePost: {
+    type: Post,
+    args: { id: PostFields.id, dto: { type: ChangePostInput } },
+    resolve: (_source, args: { id: string; dto: ChangePostInput }, { prisma }) =>
+      prisma.post.update({
         where: {
           id: args.id,
         },
-      });
-      return true;
-    },
+        data: args.dto,
+      }),
+  },
+  deletePost: {
+    type: GraphQLBoolean,
+    args: { id: PostFields.id },
+    resolve: (_source, args: { id: string }, { prisma }) =>
+      prisma.post
+        .delete({
+          where: {
+            id: args.id,
+          },
+        })
+        .then(
+          () => true,
+          () => false,
+        ),
   },
 });

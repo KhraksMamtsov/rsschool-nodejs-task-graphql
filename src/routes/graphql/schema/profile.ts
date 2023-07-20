@@ -10,7 +10,7 @@ import { MemberType, MemberTypeFields } from './memberType.js';
 import { PrismaClient } from '@prisma/client';
 import { ObjMap } from 'graphql/jsutils/ObjMap.js';
 import { GraphQLFieldConfig } from 'graphql/type/definition.js';
-import { Post, PostFields, Posts } from './post.js';
+import { nullable, Post, PostFields, Posts } from './post.js';
 import { GraphQLInputObjectType } from 'graphql/index.js';
 import { User, UserFields } from './user.js';
 
@@ -80,6 +80,22 @@ export interface CreateProfileInput {
   readonly yearOfBirth: number;
 }
 
+export const ChangeProfileInput = new GraphQLInputObjectType({
+  name: 'ChangeProfileInput',
+  fields: () => ({
+    userId: nullable(UserFields.id),
+    memberTypeId: nullable(MemberTypeFields.id),
+    isMale: nullable(ProfileFields.isMale),
+    yearOfBirth: nullable(ProfileFields.yearOfBirth),
+  }),
+});
+export interface ChangeProfileInput {
+  readonly userId?: string;
+  readonly memberTypeId?: string;
+  readonly isMale?: boolean;
+  readonly yearOfBirth?: number;
+}
+
 export const mutations: () => ObjMap<
   GraphQLFieldConfig<void, { prisma: PrismaClient }>
 > = () => ({
@@ -91,16 +107,30 @@ export const mutations: () => ObjMap<
         data: args.dto,
       }),
   },
-  deleteProfile: {
-    type: GraphQLBoolean,
-    args: { id: ProfileFields.id },
-    resolve: async (_source, args: { id: string }, { prisma }) => {
-      await prisma.profile.delete({
+  changeProfile: {
+    type: Profile,
+    args: { id: ProfileFields.id, dto: { type: ChangeProfileInput } },
+    resolve: (_source, args: { id: string; dto: ChangeProfileInput }, { prisma }) =>
+      prisma.profile.update({
         where: {
           id: args.id,
         },
-      });
-      return true;
-    },
+        data: args.dto,
+      }),
+  },
+  deleteProfile: {
+    type: GraphQLBoolean,
+    args: { id: ProfileFields.id },
+    resolve: (_source, args: { id: string }, { prisma }) =>
+      prisma.profile
+        .delete({
+          where: {
+            id: args.id,
+          },
+        })
+        .then(
+          () => true,
+          () => false,
+        ),
   },
 });

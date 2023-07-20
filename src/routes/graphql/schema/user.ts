@@ -8,11 +8,12 @@ import {
   GraphQLString,
 } from 'graphql';
 import { UUIDType } from '../types/uuid.js';
-import { Profile } from './profile.js';
+import { ChangeProfileInput, Profile, ProfileFields } from './profile.js';
 import { PrismaClient } from '@prisma/client';
-import { Post, PostFields, Posts } from './post.js';
+import { nullable, Posts } from './post.js';
 import { GraphQLFieldConfig } from 'graphql/type/definition.js';
 import { ObjMap } from 'graphql/jsutils/ObjMap.js';
+import { MemberTypeFields } from './memberType.js';
 
 export const UserFields = {
   id: { type: new GraphQLNonNull(UUIDType) },
@@ -113,6 +114,18 @@ export interface CreateUserInput {
   readonly balance: number;
 }
 
+export const ChangeUserInput = new GraphQLInputObjectType({
+  name: 'ChangeUserInput',
+  fields: () => ({
+    name: nullable(UserFields.name),
+    balance: nullable(UserFields.balance),
+  }),
+});
+export interface ChangeUserInput {
+  readonly name?: string;
+  readonly balance?: number;
+}
+
 export const mutations: () => ObjMap<
   GraphQLFieldConfig<void, { prisma: PrismaClient }>
 > = () => ({
@@ -130,16 +143,30 @@ export const mutations: () => ObjMap<
         data: args.dto,
       }),
   },
-  deleteUser: {
-    type: GraphQLBoolean,
-    args: { id: UserFields.id },
-    resolve: async (_source, args: { id: string }, { prisma }) => {
-      await prisma.user.delete({
+  changeUser: {
+    type: User,
+    args: { id: UserFields.id, dto: { type: ChangeUserInput } },
+    resolve: (_source, args: { id: string; dto: ChangeUserInput }, { prisma }) =>
+      prisma.user.update({
         where: {
           id: args.id,
         },
-      });
-      return true;
-    },
+        data: args.dto,
+      }),
+  },
+  deleteUser: {
+    type: GraphQLBoolean,
+    args: { id: UserFields.id },
+    resolve: (_source, args: { id: string }, { prisma }) =>
+      prisma.user
+        .delete({
+          where: {
+            id: args.id,
+          },
+        })
+        .then(
+          () => true,
+          () => false,
+        ),
   },
 });
