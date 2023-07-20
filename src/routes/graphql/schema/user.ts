@@ -1,4 +1,5 @@
 import {
+  GraphQLBoolean,
   GraphQLFloat,
   GraphQLInputObjectType,
   GraphQLList,
@@ -9,7 +10,7 @@ import {
 import { UUIDType } from '../types/uuid.js';
 import { Profile } from './profile.js';
 import { PrismaClient } from '@prisma/client';
-import { Posts } from './post.js';
+import { Post, PostFields, Posts } from './post.js';
 import { GraphQLFieldConfig } from 'graphql/type/definition.js';
 import { ObjMap } from 'graphql/jsutils/ObjMap.js';
 
@@ -128,5 +129,17 @@ export const mutations: () => ObjMap<
       prisma.user.create({
         data: args.dto,
       }),
+  },
+  deleteUser: {
+    type: GraphQLBoolean,
+    args: { id: UserFields.id },
+    resolve: async (_source, args: { id: string }, { prisma }) => {
+      await prisma.user.delete({
+        where: {
+          id: args.id,
+        },
+      });
+      return true;
+    },
   },
 });

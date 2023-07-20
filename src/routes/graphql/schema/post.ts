@@ -3,7 +3,7 @@ import { UUIDType } from '../types/uuid.js';
 import { ObjMap } from 'graphql/jsutils/ObjMap.js';
 import { GraphQLFieldConfig } from 'graphql/type/definition.js';
 import { PrismaClient } from '@prisma/client';
-import { GraphQLInputObjectType } from 'graphql/index.js';
+import { GraphQLBoolean, GraphQLInputObjectType } from 'graphql/index.js';
 import { UserFields } from './user.js';
 import { MemberTypeFields } from './memberType.js';
 import { Profile, ProfileFields } from './profile.js';
@@ -69,5 +69,17 @@ export const mutations: () => ObjMap<
       prisma.post.create({
         data: args.dto,
       }),
+  },
+  deletePost: {
+    type: GraphQLBoolean,
+    args: { id: PostFields.id },
+    resolve: async (_source, args: { id: string }, { prisma }) => {
+      await prisma.post.delete({
+        where: {
+          id: args.id,
+        },
+      });
+      return true;
+    },
   },
 });

@@ -12,7 +12,7 @@ import { ObjMap } from 'graphql/jsutils/ObjMap.js';
 import { GraphQLFieldConfig } from 'graphql/type/definition.js';
 import { Post, PostFields, Posts } from './post.js';
 import { GraphQLInputObjectType } from 'graphql/index.js';
-import { UserFields } from './user.js';
+import { User, UserFields } from './user.js';
 
 export const ProfileFields = {
   id: { type: new GraphQLNonNull(UUIDType) },
@@ -90,5 +90,17 @@ export const mutations: () => ObjMap<
       prisma.profile.create({
         data: args.dto,
       }),
+  },
+  deleteProfile: {
+    type: GraphQLBoolean,
+    args: { id: ProfileFields.id },
+    resolve: async (_source, args: { id: string }, { prisma }) => {
+      await prisma.profile.delete({
+        where: {
+          id: args.id,
+        },
+      });
+      return true;
+    },
   },
 });
