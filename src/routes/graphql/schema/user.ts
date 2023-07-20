@@ -169,4 +169,41 @@ export const mutations: () => ObjMap<
           () => false,
         ),
   },
+  subscribeTo: {
+    type: User,
+    args: { userId: UserFields.id, authorId: UserFields.id },
+    resolve: (_source, args: { userId: string; authorId: string }, { prisma }) => {
+      return prisma.user.update({
+        where: {
+          id: args.userId,
+        },
+        data: {
+          userSubscribedTo: {
+            create: {
+              authorId: args.authorId,
+            },
+          },
+        },
+      });
+    },
+  },
+  unsubscribeFrom: {
+    type: GraphQLBoolean,
+    args: { userId: UserFields.id, authorId: UserFields.id },
+    resolve: (_source, args: { userId: string; authorId: string }, { prisma }) => {
+      return prisma.subscribersOnAuthors
+        .delete({
+          where: {
+            subscriberId_authorId: {
+              subscriberId: args.userId,
+              authorId: args.authorId,
+            },
+          },
+        })
+        .then(
+          () => true,
+          () => false,
+        );
+    },
+  },
 });
