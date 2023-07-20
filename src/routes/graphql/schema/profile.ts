@@ -6,18 +6,29 @@ import {
   GraphQLList,
 } from 'graphql';
 import { UUIDType } from '../types/uuid.js';
-import { MemberTypeId } from './memberType.js';
-import { UserId } from './user.js';
+import { MemberType } from './memberType.js';
+import { PrismaClient } from '@prisma/client';
 
 export const ProfileId = new GraphQLNonNull(UUIDType);
-export const Profile = new GraphQLObjectType({
+export const Profile = new GraphQLObjectType<
+  { id: string; memberTypeId: string },
+  { prisma: PrismaClient }
+>({
   name: 'Profile',
   fields: () => ({
     id: { type: ProfileId },
     isMale: { type: new GraphQLNonNull(GraphQLBoolean) },
     yearOfBirth: { type: new GraphQLNonNull(GraphQLInt) },
-    memberTypeId: { type: MemberTypeId },
-    userId: { type: UserId },
+    memberType: {
+      type: MemberType,
+      resolve: (source, _, { prisma }) =>
+        prisma.memberType.findUnique({
+          where: {
+            id: source.memberTypeId,
+          },
+        }),
+    },
+    // userId: { type: UserId },
   }),
 });
 

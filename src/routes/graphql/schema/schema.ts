@@ -1,83 +1,61 @@
-import { GraphQLObjectType, GraphQLSchema, GraphQLString } from 'graphql/index.js';
-import { MemberType, MemberTypes, MemberTypeId } from './memberType.js';
+import { GraphQLList, GraphQLObjectType, GraphQLSchema } from 'graphql/index.js';
+import { MemberType, MemberTypeId, MemberTypes } from './memberType.js';
 import { PrismaClient } from '@prisma/client';
 import { GraphQLNonNull } from 'graphql';
 import { Profile, ProfileId, Profiles } from './profile.js';
-import { User, UserId, Users } from './user.js';
+import { User } from './user.js';
 import { Post, PostId, Posts } from './post.js';
-
-const dummyData = {
-  '1': 'leebyron',
-  '2': 'enaqx',
-  '3': 'schrockn',
-  '4': 'andimarek',
-};
+import { UUIDType } from '../types/uuid.js';
 
 export const schema = new GraphQLSchema({
+  // mutation: new GraphQLObjectType({
+  //   name: 'qwe',
+  //   fields: {},
+  // }),
   query: new GraphQLObjectType<string, { prisma: PrismaClient }>({
     name: 'RootQueryType',
     fields: {
       memberTypes: {
         type: MemberTypes,
-        resolve: async (_source, _args, { prisma }) => {
-          return prisma.memberType.findMany();
-        },
+        resolve: (_source, _args, { prisma }) => prisma.memberType.findMany(),
       },
       memberType: {
-        type: new GraphQLNonNull(MemberType),
+        type: MemberType,
         args: { id: { type: MemberTypeId } },
-        resolve: async (_source, args: { id: MemberTypeId }, { prisma }) => {
-          const memberType = await prisma.memberType.findUnique({
+        resolve: (_source, args: { id: MemberTypeId }, { prisma }) =>
+          prisma.memberType.findUnique({
             where: {
               id: args.id,
             },
-          });
-          if (memberType === null) {
-            throw 'httpErrors.notFound()';
-          }
-          return memberType;
-        },
+          }),
       },
       profiles: {
         type: Profiles,
-        resolve: async (_source, _args, { prisma }) => {
-          return prisma.profile.findMany();
-        },
+        resolve: (_source, _args, { prisma }) => prisma.profile.findMany(),
       },
       profile: {
-        type: new GraphQLNonNull(Profile),
+        type: Profile,
         args: { id: { type: ProfileId } },
-        resolve: async (_source, args: { id: string }, { prisma }) => {
-          const profile = await prisma.profile.findUnique({
+        resolve: (_source, args: { id: string }, { prisma }) =>
+          prisma.profile.findUnique({
             where: {
               id: args.id,
             },
-          });
-          if (profile === null) {
-            throw 'httpErrors.notFound()';
-          }
-          return profile;
-        },
+          }),
       },
       users: {
-        type: Users,
-        resolve: async (_source, _args, { prisma }) => {
-          return prisma.user.findMany();
-        },
+        type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(User))),
+        resolve: (_source, _args, { prisma }) => prisma.user.findMany(),
       },
       user: {
-        type: new GraphQLNonNull(User),
-        args: { id: { type: UserId } },
-        resolve: async (_source, args: { id: string }, { prisma }) => {
-          const user = await prisma.user.findUnique({
+        type: User,
+        args: { id: { type: new GraphQLNonNull(UUIDType) } },
+        resolve: (_source, args: { id: string }, { prisma }) => {
+          return prisma.user.findUnique({
             where: {
               id: args.id,
             },
           });
-          if (user === null) {
-            throw 'httpErrors.notFound()';
-          }
-          return user;
         },
       },
       posts: {
@@ -87,19 +65,14 @@ export const schema = new GraphQLSchema({
         },
       },
       post: {
-        type: new GraphQLNonNull(Post),
+        type: Post,
         args: { id: { type: PostId } },
-        resolve: async (_source, args: { id: string }, { prisma }) => {
-          const post = await prisma.post.findUnique({
+        resolve: (_source, args: { id: string }, { prisma }) =>
+          prisma.post.findUnique({
             where: {
               id: args.id,
             },
-          });
-          if (post === null) {
-            throw 'httpErrors.notFound()';
-          }
-          return post;
-        },
+          }),
       },
     },
   }),
