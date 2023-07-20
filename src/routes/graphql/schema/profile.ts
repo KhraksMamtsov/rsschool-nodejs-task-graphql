@@ -83,7 +83,6 @@ export interface CreateProfileInput {
 export const ChangeProfileInput = new GraphQLInputObjectType({
   name: 'ChangeProfileInput',
   fields: () => ({
-    userId: nullable(UserFields.id),
     memberTypeId: nullable(MemberTypeFields.id),
     isMale: nullable(ProfileFields.isMale),
     yearOfBirth: nullable(ProfileFields.yearOfBirth),
@@ -110,13 +109,14 @@ export const mutations: () => ObjMap<
   changeProfile: {
     type: Profile,
     args: { id: ProfileFields.id, dto: { type: ChangeProfileInput } },
-    resolve: (_source, args: { id: string; dto: ChangeProfileInput }, { prisma }) =>
-      prisma.profile.update({
+    resolve: (_source, args: { id: string; dto: ChangeProfileInput }, { prisma }) => {
+      return prisma.profile.update({
         where: {
           id: args.id,
         },
         data: args.dto,
-      }),
+      });
+    },
   },
   deleteProfile: {
     type: GraphQLBoolean,
