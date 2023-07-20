@@ -12,7 +12,7 @@ import { PrismaClient } from '@prisma/client';
 
 export type MemberTypeId = 'basic' | 'business';
 
-export const MemeberTypeFields = {
+export const MemberTypeFields = {
   id: {
     type: new GraphQLNonNull(
       new GraphQLEnumType({
@@ -31,9 +31,9 @@ export const MemeberTypeFields = {
 export const MemberType = new GraphQLObjectType({
   name: 'MemberType',
   fields: () => ({
-    id: MemeberTypeFields.id,
-    discount: MemeberTypeFields.discount,
-    postsLimitPerMonth: MemeberTypeFields.postsLimitPerMonth,
+    id: MemberTypeFields.id,
+    discount: MemberTypeFields.discount,
+    postsLimitPerMonth: MemberTypeFields.postsLimitPerMonth,
   }),
 });
 
@@ -50,7 +50,7 @@ export const queries: () => ObjMap<
   },
   memberType: {
     type: MemberType,
-    args: { id: MemeberTypeFields.id },
+    args: { id: MemberTypeFields.id },
     resolve: (_source, args: { id: MemberTypeId }, { prisma }) =>
       prisma.memberType.findUnique({
         where: {

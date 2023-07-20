@@ -10,43 +10,17 @@ export const schema = new GraphQLSchema({
     name: 'RootMutationType',
     fields: () => ({
       ...User.mutations(),
+      ...Profile.mutations(),
+      ...Post.mutations(),
     }),
   }),
-  query: new GraphQLObjectType<string, { prisma: PrismaClient }>({
+  query: new GraphQLObjectType<void, { prisma: PrismaClient }>({
     name: 'RootQueryType',
     fields: () => ({
       ...User.queries(),
       ...MT.queries(),
-      profiles: {
-        type: Profile.Profiles,
-        resolve: (_source, _args, { prisma }) => prisma.profile.findMany(),
-      },
-      profile: {
-        type: Profile.Profile,
-        args: { id: Profile.ProfileFields.id },
-        resolve: (_source, args: { id: string }, { prisma }) =>
-          prisma.profile.findUnique({
-            where: {
-              id: args.id,
-            },
-          }),
-      },
-      posts: {
-        type: Post.Posts,
-        resolve: async (_source, _args, { prisma }) => {
-          return prisma.post.findMany();
-        },
-      },
-      post: {
-        type: Post.Post,
-        args: { id: Post.PostFields.id },
-        resolve: (_source, args: { id: string }, { prisma }) =>
-          prisma.post.findUnique({
-            where: {
-              id: args.id,
-            },
-          }),
-      },
+      ...Post.queries(),
+      ...Profile.queries(),
     }),
   }),
 });
