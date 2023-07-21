@@ -8,12 +8,12 @@ import {
   GraphQLString,
 } from 'graphql';
 import { UUIDType } from '../types/uuid.js';
-import { ChangeProfileInput, Profile, ProfileFields } from './profile.js';
-import { PrismaClient } from '@prisma/client';
-import { nullable, Posts } from './post.js';
+import { Profile } from './profile.js';
+import { Posts } from './post.js';
 import { GraphQLFieldConfig } from 'graphql/type/definition.js';
 import { ObjMap } from 'graphql/jsutils/ObjMap.js';
-import { MemberTypeFields } from './memberType.js';
+import { Context } from '../Context.js';
+import { nullable } from '../types/nullable.js';
 
 export const UserFields = {
   id: { type: new GraphQLNonNull(UUIDType) },
@@ -25,7 +25,7 @@ export const User = new GraphQLObjectType<
   {
     id: string;
   },
-  { prisma: PrismaClient }
+  Context
 >({
   name: 'User',
   fields: () => ({
@@ -82,9 +82,7 @@ export const User = new GraphQLObjectType<
 
 export const Users = new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(User)));
 
-export const queries: () => ObjMap<
-  GraphQLFieldConfig<void, { prisma: PrismaClient }>
-> = () => ({
+export const queries: () => ObjMap<GraphQLFieldConfig<void, Context>> = () => ({
   users: {
     type: Users,
     resolve: (_source, _args, { prisma }) => prisma.user.findMany(),
@@ -92,12 +90,8 @@ export const queries: () => ObjMap<
   user: {
     type: User,
     args: { id: UserFields.id },
-    resolve: (_source, args: { id: string }, { prisma }) => {
-      return prisma.user.findUnique({
-        where: {
-          id: args.id,
-        },
-      });
+    resolve: (_source, args: { id: string }, { loaders }) => {
+      return loaders.userLoader.load(args.id);
     },
   },
 });
@@ -126,9 +120,7 @@ export interface ChangeUserInput {
   readonly balance?: number;
 }
 
-export const mutations: () => ObjMap<
-  GraphQLFieldConfig<void, { prisma: PrismaClient }>
-> = () => ({
+export const mutations: () => ObjMap<GraphQLFieldConfig<void, Context>> = () => ({
   createUser: {
     type: User,
     args: { dto: { type: CreateUserInput } },

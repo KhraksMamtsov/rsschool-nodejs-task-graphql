@@ -7,12 +7,12 @@ import {
 } from 'graphql';
 import { UUIDType } from '../types/uuid.js';
 import { MemberType, MemberTypeFields } from './memberType.js';
-import { PrismaClient } from '@prisma/client';
 import { ObjMap } from 'graphql/jsutils/ObjMap.js';
 import { GraphQLFieldConfig } from 'graphql/type/definition.js';
-import { nullable, Post, PostFields, Posts } from './post.js';
 import { GraphQLInputObjectType } from 'graphql/index.js';
-import { User, UserFields } from './user.js';
+import { UserFields } from './user.js';
+import { Context } from '../Context.js';
+import { nullable } from '../types/nullable.js';
 
 export const ProfileFields = {
   id: { type: new GraphQLNonNull(UUIDType) },
@@ -20,10 +20,9 @@ export const ProfileFields = {
   yearOfBirth: { type: new GraphQLNonNull(GraphQLInt) },
 };
 
-export const ProfileId = new GraphQLNonNull(UUIDType);
 export const Profile = new GraphQLObjectType<
   { id: string; memberTypeId: string },
-  { prisma: PrismaClient }
+  Context
 >({
   name: 'Profile',
   fields: () => ({
@@ -39,15 +38,12 @@ export const Profile = new GraphQLObjectType<
           },
         }),
     },
-    // userId: { type: UserId },
   }),
 });
 
 export const Profiles = new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(Profile)));
 
-export const queries: () => ObjMap<
-  GraphQLFieldConfig<void, { prisma: PrismaClient }>
-> = () => ({
+export const queries: () => ObjMap<GraphQLFieldConfig<void, Context>> = () => ({
   profiles: {
     type: Profiles,
     resolve: (_source, _args, { prisma }) => prisma.profile.findMany(),
@@ -95,9 +91,7 @@ export interface ChangeProfileInput {
   readonly yearOfBirth?: number;
 }
 
-export const mutations: () => ObjMap<
-  GraphQLFieldConfig<void, { prisma: PrismaClient }>
-> = () => ({
+export const mutations: () => ObjMap<GraphQLFieldConfig<void, Context>> = () => ({
   createProfile: {
     type: Profile,
     args: { dto: { type: CreateProfileInput } },

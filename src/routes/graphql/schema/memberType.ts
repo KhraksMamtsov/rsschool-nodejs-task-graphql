@@ -8,7 +8,7 @@ import {
 } from 'graphql';
 import { ObjMap } from 'graphql/jsutils/ObjMap.js';
 import { GraphQLFieldConfig } from 'graphql/type/definition.js';
-import { PrismaClient } from '@prisma/client';
+import { Context } from '../Context.js';
 
 export type MemberTypeId = 'basic' | 'business';
 
@@ -41,9 +41,7 @@ export const MemberTypes = new GraphQLNonNull(
   new GraphQLList(new GraphQLNonNull(MemberType)),
 );
 
-export const queries: () => ObjMap<
-  GraphQLFieldConfig<void, { prisma: PrismaClient }>
-> = () => ({
+export const queries: () => ObjMap<GraphQLFieldConfig<void, Context>> = () => ({
   memberTypes: {
     type: MemberTypes,
     resolve: (_source, _args, { prisma }) => prisma.memberType.findMany(),

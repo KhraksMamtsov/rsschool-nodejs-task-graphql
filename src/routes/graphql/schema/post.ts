@@ -1,26 +1,11 @@
-import { GraphQLObjectType, GraphQLNonNull, GraphQLString, GraphQLList } from 'graphql';
+import { GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLString } from 'graphql';
 import { UUIDType } from '../types/uuid.js';
 import { ObjMap } from 'graphql/jsutils/ObjMap.js';
-import {
-  GraphQLFieldConfig,
-  GraphQLNullableType,
-  GraphQLOutputType,
-} from 'graphql/type/definition.js';
-import { PrismaClient } from '@prisma/client';
+import { GraphQLFieldConfig } from 'graphql/type/definition.js';
 import { GraphQLBoolean, GraphQLInputObjectType } from 'graphql/index.js';
-import { ChangeUserInput, User, UserFields } from './user.js';
-import { MemberTypeFields } from './memberType.js';
-import { ProfileFields } from './profile.js';
-
-export const nullable = <
-  T extends { type: GraphQLNonNull<X> },
-  X extends GraphQLNullableType,
->(
-  x: T,
-): T & { type: X } => ({
-  ...x,
-  type: x.type.ofType,
-});
+import { UserFields } from './user.js';
+import { Context } from '../Context.js';
+import { nullable } from '../types/nullable.js';
 
 export const PostFields = {
   id: { type: new GraphQLNonNull(UUIDType) },
@@ -39,9 +24,7 @@ export const Post = new GraphQLObjectType({
 
 export const Posts = new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(Post)));
 
-export const queries: () => ObjMap<
-  GraphQLFieldConfig<void, { prisma: PrismaClient }>
-> = () => ({
+export const queries: () => ObjMap<GraphQLFieldConfig<void, Context>> = () => ({
   posts: {
     type: Posts,
     resolve: (_source, _args, { prisma }) => prisma.post.findMany(),
@@ -87,9 +70,7 @@ export interface ChangePostInput {
   readonly title?: string;
 }
 
-export const mutations: () => ObjMap<
-  GraphQLFieldConfig<void, { prisma: PrismaClient }>
-> = () => ({
+export const mutations: () => ObjMap<GraphQLFieldConfig<void, Context>> = () => ({
   createPost: {
     type: Post,
     args: { dto: { type: CreatePostInput } },

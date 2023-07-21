@@ -1,9 +1,9 @@
 import { GraphQLObjectType, GraphQLSchema } from 'graphql/index.js';
 import * as MT from './memberType.js';
-import { PrismaClient } from '@prisma/client';
 import * as Profile from './profile.js';
 import * as User from './user.js';
 import * as Post from './post.js';
+import { Context } from '../Context.js';
 
 export const schema = new GraphQLSchema({
   mutation: new GraphQLObjectType({
@@ -14,7 +14,7 @@ export const schema = new GraphQLSchema({
       ...Post.mutations(),
     }),
   }),
-  query: new GraphQLObjectType<void, { prisma: PrismaClient }>({
+  query: new GraphQLObjectType<void, Context>({
     name: 'RootQueryType',
     fields: () => ({
       ...User.queries(),
