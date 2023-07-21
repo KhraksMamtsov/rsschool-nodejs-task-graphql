@@ -10,7 +10,7 @@ import { MemberType, MemberTypeFields, MemberTypeId } from './memberType.js';
 import { ObjMap } from 'graphql/jsutils/ObjMap.js';
 import { GraphQLFieldConfig } from 'graphql/type/definition.js';
 import { GraphQLInputObjectType } from 'graphql/index.js';
-import { UserFields } from './user.js';
+import { User, UserFields } from './user.js';
 import { Context } from '../Context.js';
 import { nullable } from '../types/nullable.js';
 
@@ -21,7 +21,7 @@ export const ProfileFields = {
 };
 
 export const Profile = new GraphQLObjectType<
-  { id: string; memberTypeId: MemberTypeId },
+  { id: string; userId: string; memberTypeId: MemberTypeId },
   Context
 >({
   name: 'Profile',
@@ -32,6 +32,10 @@ export const Profile = new GraphQLObjectType<
     memberType: {
       type: MemberType,
       resolve: (source, _, { loader }) => loader.memberTypeById.load(source.memberTypeId),
+    },
+    user: {
+      type: User,
+      resolve: (source, _, { loader }) => loader.userById.load(source.userId),
     },
   }),
 });

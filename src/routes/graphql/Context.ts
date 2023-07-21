@@ -7,6 +7,7 @@ export interface Context {
 }
 
 export interface DataLoaders {
+  userById: ReturnType<typeof DL.userById>;
   profileByUserId: ReturnType<typeof DL.profileByUserId>;
   postsByAuthorId: ReturnType<typeof DL.postsByAuthorId>;
   memberTypeById: ReturnType<typeof DL.memberTypeById>;

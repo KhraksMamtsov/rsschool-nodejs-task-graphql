@@ -38,6 +38,7 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
           contextValue: {
             prisma,
             loader: {
+              userById: DL.userById({ prisma }),
               subscribersByUserId: DL.subscribersByUserId({ prisma }),
               subscriptionsByUserId: DL.subscriptionsByUserId({ prisma }),
               memberTypeById: DL.memberTypeById({ prisma }),

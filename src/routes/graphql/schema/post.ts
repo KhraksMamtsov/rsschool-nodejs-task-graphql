@@ -3,7 +3,7 @@ import { UUIDType } from '../types/uuid.js';
 import { ObjMap } from 'graphql/jsutils/ObjMap.js';
 import { GraphQLFieldConfig } from 'graphql/type/definition.js';
 import { GraphQLBoolean, GraphQLInputObjectType } from 'graphql/index.js';
-import { UserFields } from './user.js';
+import { User, UserFields } from './user.js';
 import { Context } from '../Context.js';
 import { nullable } from '../types/nullable.js';
 
@@ -13,12 +13,17 @@ export const PostFields = {
   content: { type: new GraphQLNonNull(GraphQLString) },
 };
 
-export const Post = new GraphQLObjectType({
+export const Post = new GraphQLObjectType<{ authorId: string }, Context>({
   name: 'Post',
   fields: () => ({
     id: PostFields.id,
     title: PostFields.title,
     content: PostFields.content,
+    author: {
+      type: User,
+      resolve: (source: { authorId: string }, _, { loader }) =>
+        loader.userById.load(source.authorId),
+    },
   }),
 });
 

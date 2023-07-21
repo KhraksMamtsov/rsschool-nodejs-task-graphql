@@ -2,6 +2,15 @@ import { MemberType, Post, PrismaClient, Profile, User } from '@prisma/client';
 import DataLoader from 'dataloader';
 import { MemberTypeId } from '../schema/memberType.js';
 
+export const userById = (deps: { prisma: PrismaClient }) =>
+  new DataLoader<string, User | null>(async (userIds) => {
+    const users = await deps.prisma.user.findMany({
+      where: { id: { in: [...userIds] } },
+    });
+
+    return userIds.map((userId) => users.find((x) => x.id === userId) ?? null);
+  });
+
 export const subscriptionsByUserId = (deps: { prisma: PrismaClient }) =>
   new DataLoader<string, Array<User>>(async (userIds) => {
     const subscriptions = await deps.prisma.user.findMany({
