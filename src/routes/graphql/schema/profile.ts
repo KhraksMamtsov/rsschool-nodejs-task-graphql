@@ -1,9 +1,9 @@
 import {
-  GraphQLObjectType,
-  GraphQLInt,
   GraphQLBoolean,
-  GraphQLNonNull,
+  GraphQLInt,
   GraphQLList,
+  GraphQLNonNull,
+  GraphQLObjectType,
 } from 'graphql';
 import { UUIDType } from '../types/uuid.js';
 import { MemberType, MemberTypeFields, MemberTypeId } from './memberType.js';
@@ -40,11 +40,9 @@ export const Profile = new GraphQLObjectType<
   }),
 });
 
-export const Profiles = new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(Profile)));
-
 export const queries: () => ObjMap<GraphQLFieldConfig<void, Context>> = () => ({
   profiles: {
-    type: Profiles,
+    type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(Profile))),
     resolve: (_source, _args, { prisma }) => prisma.profile.findMany(),
   },
   profile: {

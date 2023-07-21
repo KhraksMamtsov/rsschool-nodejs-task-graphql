@@ -5,6 +5,7 @@ import {
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
+  GraphQLResolveInfo,
   GraphQLString,
 } from 'graphql';
 import { UUIDType } from '../types/uuid.js';
@@ -14,6 +15,11 @@ import { GraphQLFieldConfig } from 'graphql/type/definition.js';
 import { ObjMap } from 'graphql/jsutils/ObjMap.js';
 import { Context } from '../Context.js';
 import { nullable } from '../types/nullable.js';
+import {
+  parseResolveInfo,
+  ResolveTree,
+  simplifyParsedResolveInfoFragmentWithType,
+} from 'graphql-parse-resolve-info';
 
 export const UserFields = {
   id: { type: new GraphQLNonNull(UUIDType) },
@@ -21,12 +27,7 @@ export const UserFields = {
   balance: { type: new GraphQLNonNull(GraphQLFloat) },
 };
 
-export const User = new GraphQLObjectType<
-  {
-    id: string;
-  },
-  Context
->({
+export const User: GraphQLObjectType<{ id: string }, Context> = new GraphQLObjectType({
   name: 'User',
   fields: () => ({
     id: UserFields.id,
@@ -51,10 +52,60 @@ export const User = new GraphQLObjectType<
   }),
 });
 
+const getSubsFields = (
+  resolveInfo: GraphQLResolveInfo,
+): { userSubscribedTo: boolean; subscribedToUser: boolean } => {
+  const parsedResolveInfoFragment = parseResolveInfo(resolveInfo);
+
+  if (parsedResolveInfoFragment) {
+    const {
+      fields: { userSubscribedTo, subscribedToUser },
+    }: { fields: Record<string, unknown> } = simplifyParsedResolveInfoFragmentWithType(
+      parsedResolveInfoFragment as ResolveTree,
+      new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(User))),
+    );
+
+    return { userSubscribedTo: !!userSubscribedTo, subscribedToUser: !!subscribedToUser };
+  } else {
+    return { userSubscribedTo: false, subscribedToUser: false };
+  }
+};
+
 export const queries: () => ObjMap<GraphQLFieldConfig<void, Context>> = () => ({
   users: {
     type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(User))),
-    resolve: (_source, _args, { prisma }) => prisma.user.findMany(),
+    resolve: async (_source, _args, { prisma, loader }, resolveInfo) => {
+      const { userSubscribedTo, subscribedToUser } = getSubsFields(resolveInfo);
+
+      const users = await prisma.user.findMany({
+        include: {
+          userSubscribedTo: userSubscribedTo,
+          subscribedToUser: subscribedToUser,
+        },
+      });
+
+      users.forEach((user) => {
+        if (userSubscribedTo) {
+          loader.subscriptionsByUserId.prime(
+            user.id,
+            users.filter((u) =>
+              user.userSubscribedTo.some((ust) => ust.authorId === u.id),
+            ),
+          );
+        }
+
+        if (subscribedToUser) {
+          loader.subscribersByUserId.prime(
+            user.id,
+            users.filter((u) =>
+              user.subscribedToUser.some((ust) => ust.subscriberId === u.id),
+            ),
+          );
+        }
+      });
+
+      return users;
+    },
   },
   user: {
     type: User,
