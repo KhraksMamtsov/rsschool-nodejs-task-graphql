@@ -1,3 +1,13 @@
+## How to check
+ - `git checkout develop`
+ - `npm install`
+ - `npm run test-integrity`
+ - `npm run test-queries`
+ - `npm run test-mutations`
+ - `npm run test-rule`
+ - `npm run test-loader`
+ - `npm run test-loader-prime`
+
 ## Assignment: Graphql
 ### Tasks:
 1. Add logic to the graphql endpoint: ./src/routes/graphql.  
