@@ -51,11 +51,9 @@ export const User = new GraphQLObjectType<
   }),
 });
 
-export const Users = new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(User)));
-
 export const queries: () => ObjMap<GraphQLFieldConfig<void, Context>> = () => ({
   users: {
-    type: Users,
+    type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(User))),
     resolve: (_source, _args, { prisma }) => prisma.user.findMany(),
   },
   user: {
