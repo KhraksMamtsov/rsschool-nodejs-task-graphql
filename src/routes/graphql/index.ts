@@ -4,7 +4,7 @@ import { graphql, parse, validate } from 'graphql';
 import { schema } from './schema/schema.js';
 import depthLimit from 'graphql-depth-limit';
 import { Context } from './Context.js';
-import { userLoader } from './data-loader/dataloaders.js';
+import * as DL from './data-loader/dataloaders.js';
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
   const { prisma } = fastify;
@@ -37,8 +37,12 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
           variableValues: req.body.variables,
           contextValue: {
             prisma,
-            loaders: {
-              userLoader: userLoader({ prisma }),
+            loader: {
+              subscribersByUserId: DL.subscribersByUserId({ prisma }),
+              subscriptionsByUserId: DL.subscriptionsByUserId({ prisma }),
+              memberTypeById: DL.memberTypeById({ prisma }),
+              profileByUserId: DL.profileByUserId({ prisma }),
+              postsByAuthorId: DL.postsByAuthorId({ prisma }),
             },
           } satisfies Context,
         });

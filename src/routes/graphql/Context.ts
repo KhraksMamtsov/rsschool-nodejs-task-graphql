@@ -3,9 +3,13 @@ import type * as DL from './data-loader/dataloaders.js';
 
 export interface Context {
   prisma: PrismaClient;
-  loaders: DataLoaders;
+  loader: DataLoaders;
 }
 
 export interface DataLoaders {
-  userLoader: ReturnType<typeof DL.userLoader>;
+  profileByUserId: ReturnType<typeof DL.profileByUserId>;
+  postsByAuthorId: ReturnType<typeof DL.postsByAuthorId>;
+  memberTypeById: ReturnType<typeof DL.memberTypeById>;
+  subscriptionsByUserId: ReturnType<typeof DL.subscriptionsByUserId>;
+  subscribersByUserId: ReturnType<typeof DL.subscribersByUserId>;
 }

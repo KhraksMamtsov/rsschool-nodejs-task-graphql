@@ -6,7 +6,7 @@ import {
   GraphQLList,
 } from 'graphql';
 import { UUIDType } from '../types/uuid.js';
-import { MemberType, MemberTypeFields } from './memberType.js';
+import { MemberType, MemberTypeFields, MemberTypeId } from './memberType.js';
 import { ObjMap } from 'graphql/jsutils/ObjMap.js';
 import { GraphQLFieldConfig } from 'graphql/type/definition.js';
 import { GraphQLInputObjectType } from 'graphql/index.js';
@@ -21,7 +21,7 @@ export const ProfileFields = {
 };
 
 export const Profile = new GraphQLObjectType<
-  { id: string; memberTypeId: string },
+  { id: string; memberTypeId: MemberTypeId },
   Context
 >({
   name: 'Profile',
@@ -31,12 +31,7 @@ export const Profile = new GraphQLObjectType<
     yearOfBirth: ProfileFields.yearOfBirth,
     memberType: {
       type: MemberType,
-      resolve: (source, _, { prisma }) =>
-        prisma.memberType.findUnique({
-          where: {
-            id: source.memberTypeId,
-          },
-        }),
+      resolve: (source, _, { loader }) => loader.memberTypeById.load(source.memberTypeId),
     },
   }),
 });

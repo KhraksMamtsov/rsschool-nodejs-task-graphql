@@ -34,48 +34,19 @@ export const User = new GraphQLObjectType<
     balance: UserFields.balance,
     profile: {
       type: Profile,
-      resolve: (source, _, { prisma }) =>
-        prisma.profile.findUnique({
-          where: {
-            userId: source.id,
-          },
-        }),
+      resolve: (source, _, { loader }) => loader.profileByUserId.load(source.id),
     },
     posts: {
       type: Posts,
-      resolve: (source, _, { prisma }) =>
-        prisma.post.findMany({
-          where: {
-            authorId: source.id,
-          },
-        }),
+      resolve: (source, _, { loader }) => loader.postsByAuthorId.load(source.id),
     },
     userSubscribedTo: {
       type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(User))),
-      resolve: async (source, _, { prisma }) => {
-        return prisma.user.findMany({
-          where: {
-            subscribedToUser: {
-              some: {
-                subscriberId: source.id,
-              },
-            },
-          },
-        });
-      },
+      resolve: (source, _, { loader }) => loader.subscriptionsByUserId.load(source.id),
     },
     subscribedToUser: {
       type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(User))),
-      resolve: (source, _, { prisma }) =>
-        prisma.user.findMany({
-          where: {
-            userSubscribedTo: {
-              some: {
-                authorId: source.id,
-              },
-            },
-          },
-        }),
+      resolve: (source, _, { loader }) => loader.subscribersByUserId.load(source.id),
     },
   }),
 });
@@ -90,9 +61,12 @@ export const queries: () => ObjMap<GraphQLFieldConfig<void, Context>> = () => ({
   user: {
     type: User,
     args: { id: UserFields.id },
-    resolve: (_source, args: { id: string }, { loaders }) => {
-      return loaders.userLoader.load(args.id);
-    },
+    resolve: (_source, args: { id: string }, { prisma }) =>
+      prisma.user.findUnique({
+        where: {
+          id: args.id,
+        },
+      }),
   },
 });
 
